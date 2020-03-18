@@ -40,9 +40,14 @@ echo "unzip jboss-eap"  >> /home/$1/install.log
 sudo unzip jboss-eap-7.2.0.zip -d /opt/rh/
 
 
-echo "Copy the standalone-azure-ha.xml from JBOSS_HOME/docs/examples/configs folder tp JBOSS_HOME/standalone/configuration folder" >> /home/$1/install.log
-cp $JBOSS_HOME/docs/examples/configs/standalone-azure-ha.xml $JBOSS_HOME/standalone/configuration/
+#echo "Copy the standalone-azure-ha.xml from JBOSS_HOME/docs/examples/configs folder tp JBOSS_HOME/standalone/configuration folder" >> /home/$1/install.log
+#cp $JBOSS_HOME/docs/examples/configs/standalone-azure-ha.xml $JBOSS_HOME/standalone/configuration/
 
+echo "deploy an applicaiton " >> /home/$1/install.log
+git clone https://github.com/danieloh30/eap-session-replication.git
+cp eap-session-replication/eap-configuration/standalone-ha.xml $JBOSS_HOME/standalone/configuration/
+cp eap-session-replication/target/eap-session-replication.war $JBOSS_HOME/standalone/deployments/
+touch $JBOSS_HOME/standalone/deployments/eap-session-replication.war.dodeploy
 echo "change the jgroups stack from UDP to TCP " >> /home/$1/install.log
 
 sed -i 's/stack="udp"/stack="tcp"/g'  $JBOSS_HOME/standalone/configuration/standalone-azure-ha.xml
@@ -56,10 +61,7 @@ echo "start jboss server" >> /home/$1/install.log
 
 $JBOSS_HOME/bin/standalone.sh -bprivate $IP_ADDR --server-config=standalone-azure-ha.xml -Djboss.jgroups.azure_ping.storage_account_name=$STORAGE_ACCOUNT_NAME -Djboss.jgroups.azure_ping.storage_access_key=$STORAGE_ACCESS_KEY -Djboss.jgroups.azure_ping.container=$CONTAINER_NAME -Djava.net.preferIPv4Stack=true &
 
-echo "deploy an applicaiton " >> /home/$1/install.log
-git clone https://github.com/danieloh30/eap-session-replication.git
-cp eap-session-replication/target/eap-session-replication.war $JBOSS_HOME/standalone/deployments/
-touch $JBOSS_HOME/standalone/deployments/eap-session-replication.war.dodeploy
+
 
 echo "Configuring EAP managment user..." >> /home/$1/install.log 
 $JBOSS_HOME/bin/add-user.sh  -u $EAP_USER -p $EAP_PASSWORD -g 'guest,mgmtgroup'
